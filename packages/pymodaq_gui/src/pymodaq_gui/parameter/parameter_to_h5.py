@@ -1,4 +1,6 @@
 from typing import Union
+
+from PyQt6.QtCore import QDateTime
 from pymodaq_gui.parameter import Parameter
 from pathlib import Path
 from pymodaq_gui.parameter import ioxml
@@ -7,10 +9,11 @@ from pymodaq_data.h5modules.saving import H5SaverLowLevel
 from pymodaq_data.h5modules.saving import DataType
 import numpy as np
 
+from qtpy.QtCore import Qt
+
 from pymodaq_gui.parameter.pymodaq_ptypes import GroupParameter
 
 from pymodaq_data.data import DataDim
-
 
 # TODO dict list doesn't work
 # TODO conversion test (XML file <=> Parameter)
@@ -101,11 +104,11 @@ class ParamH5Converter:
         if param_type == 'itemselect':
             return param_value['selected']
         elif param_type == 'date_time':
-            return param_value.toPyDateTime().isoformat()
+            return param_value.toString(Qt.DateFormat.ISODate)
         elif param_type == 'date':
-            return param_value.toPyDate().isoformat()
+            return param_value.toString(Qt.DateFormat.ISODate)
         elif param_type == 'time':
-            return param_value.toPyTime().isoformat()
+            return param_value.toString(Qt.DateFormat.ISODate)
 
         return param_value
 
