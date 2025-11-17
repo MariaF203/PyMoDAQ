@@ -7,6 +7,8 @@ from pymodaq_data.h5modules.saving import H5SaverLowLevel
 from pymodaq_data.h5modules.saving import DataType
 import numpy as np
 
+from pymodaq_gui.parameter.pymodaq_ptypes import GroupParameter
+
 from pymodaq_data.data import DataDim
 
 
@@ -55,7 +57,7 @@ class ParamH5Converter:
         opts = {k: v for k,v in parameter.opts.items()
                 if k not in ['name', 'title']}
 
-        if parameter.hasChildren() or param_type == 'group':
+        if parameter.hasChildren() or isinstance(parameter, GroupParameter):
             new_node = self.saver.get_set_group(current_node, param_name, param_title)
 
             for key, value in opts.items():
