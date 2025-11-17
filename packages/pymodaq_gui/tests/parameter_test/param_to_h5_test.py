@@ -6,6 +6,7 @@ import pymodaq_gui.utils.widgets.table as table
 from collections import OrderedDict
 from pymodaq_gui.parameter import ioxml
 from pymodaq_gui.parameter import Parameter
+from pathlib import Path
 
 params_test = [
         {'title': 'Groups:', 'name': 'groups', 'type': 'group', 'children': [
@@ -116,13 +117,10 @@ params_test = [
         # TableModelTabular and the TableModelSequential custom models in the pymodaq.utils.scanner module
     ]
 
-
 settings = Parameter.create(name='settings', type='group', children=params_test)
 
 string = ioxml.parameter_to_xml_string(settings)
 
-print(type(string))
-
-converter = ParamH5Converter()
-converter.parameter_to_h5(string)
-converter.close()
+converter = ParamH5Converter(string)
+h5_file = Path('converter_test.h5')
+converter.parameter_to_h5(h5_file)
