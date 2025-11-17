@@ -23,12 +23,10 @@ from pymodaq_data.data import DataDim
 
 class ParamH5Converter:
 
-    def __init__(self, h5_file: Path = Path('converter_test.h5')):
+    def __init__(self, parameter: Union[Parameter, str, Path]):
 
-        self.saver = H5SaverLowLevel()
-        self.saver.init_file(Path(h5_file), raw_group_name='settings')
-
-        self.root_node = self.saver.root()
+        self.saver = None
+        self.parameter = self._convert_to_parameter(parameter)
 
     @staticmethod
     def _convert_to_parameter(parameter):
@@ -36,20 +34,29 @@ class ParamH5Converter:
         if isinstance(parameter, str) or isinstance(parameter, bytes):
             return ioxml.xml_string_to_parameter(parameter)
         elif isinstance(parameter, Path):
+            # TODO To fix when pull request ok
+            # return ioxml.xml_file_to_parameter(parameter)
             return ioxml.XML_file_to_parameter(parameter)
 
         return parameter
 
-    def parameter_to_h5(self, parameter: Union[Parameter, str, Path], where: GROUP = None):
+    # TODO Return to 2 params where and h5_file or keep this?
+    def parameter_to_h5(self, target: Union[GROUP, Path]):
 
-        if where is None:
-            current_node = self.root_node
+        if isinstance(target, GROUP):
+            saver_init = False
+            current_node = target.node()
+            # TODO missing 'settings' group
         else:
-            current_node = where
+            self.saver = H5SaverLowLevel()
+            self.saver.init_file(target, raw_group_name='settings')
+            saver_init = True
+            current_node = self.saver.root()
 
-        parameter = self._convert_to_parameter(parameter)
+        self._parameter_to_h5_rec(self.parameter, current_node)
 
-        self._parameter_to_h5_rec(parameter, current_node)
+        if saver_init:
+            self.saver.close_file()
 
     def _parameter_to_h5_rec(self, parameter, current_node):
 
@@ -111,6 +118,3 @@ class ParamH5Converter:
             return param_value.toString(Qt.DateFormat.ISODate)
 
         return param_value
-
-    def close(self):
-        self.saver.close_file()
