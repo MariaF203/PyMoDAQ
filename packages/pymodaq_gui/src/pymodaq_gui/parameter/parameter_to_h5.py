@@ -1,6 +1,5 @@
 from typing import Union
 
-from PyQt6.QtCore import QDateTime
 from pymodaq_gui.parameter import Parameter
 from pathlib import Path
 from pymodaq_gui.parameter import ioxml
@@ -15,10 +14,7 @@ from pymodaq_gui.parameter.pymodaq_ptypes import GroupParameter
 
 from pymodaq_data.data import DataDim
 
-# TODO dict list doesn't work?
 # TODO COMMENT
-
-# TODO Add a 'settings' group as I do or not?
 
 class ParamH5Converter:
 
@@ -37,20 +33,22 @@ class ParamH5Converter:
 
         return parameter
 
-    # TODO Return to 2 params where and h5_file or keep this?
-    def parameter_to_h5(self, target: Union[GROUP, Path]):
+    def parameter_to_h5(self, target: Union[GROUP, Path], saver = None):
 
         if isinstance(target, GROUP):
-            saver_init = False
 
-            # TODO how to handle GROUP?
-            current_node = target.node
-            self.saver = target.to_h5_backend()
+            if saver is None:
+                raise Exception("Missing parameter: saver.")
+
+            saver_init = False
+            self.saver = saver
+            current_node = self.saver.get_node(target)
             current_node = self.saver.get_set_group(current_node, 'settings')
+
         else:
+            saver_init = True
             self.saver = H5SaverLowLevel()
             self.saver.init_file(target, raw_group_name='settings')
-            saver_init = True
             current_node = self.saver.root()
 
         self._parameter_to_h5_rec(self.parameter, current_node)
@@ -62,7 +60,6 @@ class ParamH5Converter:
 
         param_name = parameter.name()
         param_title = parameter.title()
-        param_type = parameter.type()
 
         opts = {k: v for k,v in parameter.opts.items()
                 if k not in ['name', 'title']}
@@ -79,10 +76,6 @@ class ParamH5Converter:
         else:
             param_value = self._convert_value(parameter)
 
-            # TODO Is this ok?
-            if param_type != 'table' and param_type != 'table_view':
-                param_value = np.array([param_value])
-
             opts['TITLE'] = param_title
             if 'value' in opts:
                 opts.pop('value')
@@ -98,31 +91,27 @@ class ParamH5Converter:
 
         # TODO How to handle None values?
         if param_value is None:
-            return ''
+            return np.array([''])
 
         if param_type == 'itemselect':
-            return param_value['selected']
+            return np.array([param_value['selected']])
 
-        elif param_type == 'date_time':
-            return param_value.toString(Qt.DateFormat.ISODate)
-
-        elif param_type == 'date':
-            return param_value.toString(Qt.DateFormat.ISODate)
-
-        elif param_type == 'time':
-            return param_value.toString(Qt.DateFormat.ISODate)
-        # TODO Is this ok? Same thing in ioxml
+        elif param_type == 'date_time' or param_type == 'date' or param_type == 'time':
+            return np.array([param_value.toString(Qt.DateFormat.ISODate)])
 
         elif param_type == 'color':
-            return str([param_value.red(), param_value.green(), param_value.blue(), param_value.alpha()])
+            return np.array([str([param_value.red(), param_value.green(), param_value.blue(), param_value.alpha()])])
 
         elif param_type == 'table':
-            return np.array(list(param_value.items()), parameter.opts.get('header'))
+            items = list(param_value.items())
+            items = [e[1] for e in items]
 
-        """elif param_type == 'table_view':
+            return np.array(items)
+
+        elif param_type == 'table_view':
             row_count = param_value.rowCount()
             col_count = param_value.columnCount()
-            data_array = {param_value.index(i,j).data(Qt.ItemDataRole.DisplayRole) for i in range(row_count) for j in range(col_count)}
-            return np.array(list(data_array))"""
+            data_array = [param_value.index(i,j).data(Qt.ItemDataRole.DisplayRole) for i in range(row_count) for j in range(col_count)]
+            return np.array(data_array)
 
-        return param_value
+        return np.array([param_value])

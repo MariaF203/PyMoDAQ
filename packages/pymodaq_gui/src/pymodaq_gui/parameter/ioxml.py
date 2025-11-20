@@ -122,7 +122,6 @@ def add_text_to_elt(elt, param):
         text = str(param.value())
     elt.text = text
 
-
 def dict_from_param(param):
     """Get Parameter properties as a dictionary
 
@@ -220,6 +219,11 @@ def dict_from_param(param):
         else:
             filetype = '0'
         opts.update(dict(filetype=filetype))
+
+    # TODO TEST
+    if 'header' in param.opts:
+        opts.update(dict(header=param.opts['header']))
+    # TODO END TEST
 
     return opts
 
@@ -324,6 +328,12 @@ def elt_to_dict(el):
             param.update(dict(limits=limits))
         except:
             pass
+
+    # TODO TEST
+    if 'header' in el.attrib.keys():
+        header = eval(el.get('header'))
+        param.update(dict(header=header))
+    # TODO END TEST
 
     return param
 
