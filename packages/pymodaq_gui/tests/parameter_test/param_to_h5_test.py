@@ -1,4 +1,4 @@
-from PyQt6.QtGui import QColor
+from qtpy.QtGui import QColor
 
 from pymodaq_gui.parameter.parameter_to_h5 import ParamH5Converter
 
