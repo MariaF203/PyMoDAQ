@@ -89,7 +89,7 @@ def str_to_bytes(message: str) -> bytes:
 
 
 def str_len_to_bytes( message: Union[str, bytes]) -> Tuple[bytes, bytes]:
-    """ Convert a string and its length to two bytes
+    """ Convert a string and its length to four bytes
     Parameters
     ----------
     message: str
